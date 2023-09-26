@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gocolly/colly"
+	"github.com/webscrapper/helper"
 )
 
 func main() {
@@ -21,26 +22,6 @@ func main() {
 	}
 
 	router.Run("localhost:8000")
-}
-
-type Resturant struct {
-	Name         string
-	ReviewsCount string
-	Address      string
-	Menu         []Menu
-}
-
-type Menu struct {
-	Category string
-	Items    []Item
-}
-
-type Item struct {
-	Name        string
-	Description string
-	OldPrice    string
-	Price       string
-	Currency    string
 }
 
 func scrape(ctx *gin.Context) {
@@ -64,7 +45,7 @@ func scrape(ctx *gin.Context) {
 		colly.AllowedDomains("www.elmenus.com"),
 	)
 
-	resturant := Resturant{}
+	resturant := helper.Resturant{}
 
 	// Resturant Information will be visible in the resturant-info-container div.
 	collyCollector.OnHTML(".resturant-info-container", func(element *colly.HTMLElement) {
