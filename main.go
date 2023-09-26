@@ -8,7 +8,14 @@ import (
 
 func main() {
 	router := gin.Default()
-	router.GET("/scrape", scrape)
+
+	api := router.Group("/api")
+	{
+		v1 := api.Group("v1")
+		{
+			v1.GET("scrape", scrape)
+		}
+	}
 
 	router.Run("localhost:8000")
 }
@@ -17,9 +24,13 @@ func scrape(ctx *gin.Context) {
 	url := ctx.Request.URL.Query().Get("url")
 
 	if url == "" {
-		ctx.IndentedJSON(http.StatusUnprocessableEntity, gin.H{"message": "Please enter a url"})
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": "Please specify a url in the query parameters",
+		})
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusOK, gin.H{"data": url})
+	ctx.IndentedJSON(http.StatusOK, gin.H{
+		"data": url,
+	})
 }
