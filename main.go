@@ -1,13 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gocolly/colly"
-	"github.com/webscrapper/helper"
+	"github.com/webscraper/helper"
 )
 
 func main() {
@@ -17,14 +15,14 @@ func main() {
 	{
 		v1 := api.Group("v1")
 		{
-			v1.GET("scrape", scrape)
+			v1.GET("scrape", handleScrapeEndpoint)
 		}
 	}
 
 	router.Run("localhost:8000")
 }
 
-func scrape(ctx *gin.Context) {
+func handleScrapeEndpoint(ctx *gin.Context) {
 	url := ctx.Request.URL.Query().Get("url")
 
 	if url == "" {
@@ -41,30 +39,7 @@ func scrape(ctx *gin.Context) {
 		return
 	}
 
-	collyCollector := colly.NewCollector(
-		colly.AllowedDomains("www.elmenus.com"),
-	)
-
-	resturant := helper.Resturant{}
-
-	// Resturant Information will be visible in the resturant-info-container div.
-	collyCollector.OnHTML(".resturant-info-container", func(element *colly.HTMLElement) {
-		// Split the string into an array by using \n as delimiter then pick the first element which is the wanted string.
-		resturant.Name = strings.Split(element.ChildText("h1[class=title]"), "\n")[0]
-		resturant.Address = strings.Split(element.ChildText("p[class=info-value]"), "\n")[0]
-	})
-
-	collyCollector.OnHTML(".rest-rate", func(element *colly.HTMLElement) {
-		resturant.ReviewsCount = element.ChildText("a")
-	})
-
-	// TODO: Append Menu & Items to resturant's Menu struct.
-
-	collyCollector.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visitng", r.URL)
-	})
-
-	collyCollector.Visit(url)
+	resturant := helper.ScrapeUrl(url)
 
 	ctx.IndentedJSON(http.StatusOK, gin.H{
 		"data": resturant,
